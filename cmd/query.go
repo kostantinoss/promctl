@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"promctl/exporter"
 	"time"
 
 	"github.com/prometheus/client_golang/api"
@@ -28,7 +29,7 @@ func init() {
 }
 
 func Query(cmd *cobra.Command, args []string) {
-	output, _ := cmd.Flags().GetString("output")
+	output_file, _ := cmd.Flags().GetString("output")
 	query, _ := cmd.Flags().GetString("query")
 	if query == "" {
 		fmt.Println("Error, query empty ")
@@ -52,8 +53,9 @@ func Query(cmd *cobra.Command, args []string) {
 		fmt.Println(err.Error())
 	}
 
-	if output != "" {
-		fmt.Println("results exported at " + output)
+	if output_file != "" {
+		exporter.Export_raw(result, output_file)
+		fmt.Println("results exported at " + output_file)
 	} else {
 		for _, elem := range result.(model.Vector) {
 			fmt.Println(elem)

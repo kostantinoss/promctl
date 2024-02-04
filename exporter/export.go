@@ -7,10 +7,6 @@ import (
 	"github.com/prometheus/common/model"
 )
 
-func ExportDataFrame() {
-	//
-}
-
 func Export_raw(query_result model.Value, path string) {
 	file, err := os.Create(path)
 	if err != nil {
