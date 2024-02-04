@@ -5,43 +5,46 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/prometheus/client_golang/api"
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/prometheus/common/model"
 	"github.com/spf13/cobra"
 )
 
-var rootCmd = &cobra.Command{
+var queryCommand = &cobra.Command{
 	Use:   "query",
-	Short: "Perform a Prom query",
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("hi")
-	},
+	Short: "Perform a simple query",
+	Long:  "",
+	Run:   Query,
 }
 
-func query(query string) model.Value {
-	client, err := api.NewClient(api.Config{
-		Address: "http://localhost:9090",
-	})
+func Query(cmd *cobra.Command, args []string) {
+	query, _ := cmd.Flags().GetString("query")
+	output, _ := cmd.Flags().GetString("output")
 
-	if err != nil {
-		fmt.Println("Error creating client")
-	}
+	fmt.Println(output)
 
-	v1api := v1.NewAPI(client)
+	api := v1.NewAPI(nil)
 
-	result, _, err := v1api.Query(
+	result, _, err := api.Query(
 		context.TODO(), query, time.Now(), v1.WithTimeout(10*time.Second),
 	)
 	if err != nil {
 		fmt.Println(err.Error())
 	}
 
-	return result
+	if output == "file" {
+		// exporter.Export_raw()
+	} else {
+		for _, elem := range result.(model.Vector) {
+			fmt.Println(elem)
+		}
+	}
 }
 
-func Execute() {
-	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(fmt.Errorf("error"))
-	}
+func init() {
+	rootCmd.AddCommand(queryCommand)
+	queryCommand.Flags().StringP("server", "s", "", "")
+	queryCommand.Flags().StringP("query", "q", "", "")
+	queryCommand.Flags().StringP("output", "o", "", "")
+
 }

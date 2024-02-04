@@ -1,51 +1,11 @@
 package main
 
 import (
-	"fmt"
-	"os"
-	"prom-backup/cmd"
-
-	"github.com/prometheus/common/model"
+	"promctl/cmd"
 )
-
-func export_raw(query_result model.Value, path string) {
-	file, err := os.Create(path)
-	if err != nil {
-		fmt.Println(err.Error())
-	}
-
-	defer file.Close()
-
-	if query_result.Type() == model.ValVector {
-		vector := query_result.(model.Vector)
-		for _, elem := range vector {
-			str := elem.Metric.String() + ", " + elem.Timestamp.String()
-			file.WriteString(str + "\n")
-		}
-	}
-
-}
-
-// func export_data_frame(query_result model.Value, path string) {
-//     //
-// }
 
 func main() {
 	cmd.Execute()
-	// client, err := api.NewClient(api.Config{
-	// 	Address: "http://34.38.166.195:30090",
-	// })
-
-	// if err != nil {
-	// 	fmt.Println("Error creating client")
-	// }
-
-	// v1api := v1.NewAPI(client)
-	// query := "kube_pod_status_phase"
-
-	// r := Query(v1api, query)
-	// export_raw(r, "/data/kchondr/arcadia/prom-backup/goprombackup/raw.txt")
-
 }
 
 /*
