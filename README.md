@@ -13,7 +13,7 @@ To begin, configure the Prometheus server you want to interact with
 promctl config --server=localhost30010
 ```
 
-To get the available metrics:
+To get the available metrics to stdout:
 ```
 promctl metrics
 ```
