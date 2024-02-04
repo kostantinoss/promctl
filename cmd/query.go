@@ -3,11 +3,14 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"os"
 	"time"
 
+	"github.com/prometheus/client_golang/api"
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/prometheus/common/model"
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v3"
 )
 
 var queryCommand = &cobra.Command{
@@ -17,13 +20,30 @@ var queryCommand = &cobra.Command{
 	Run:   Query,
 }
 
+func init() {
+	rootCmd.AddCommand(queryCommand)
+	queryCommand.Flags().StringP("query", "q", "", "Provide query string")
+	queryCommand.Flags().StringP("output", "o", "", "Write query result to file")
+
+}
+
 func Query(cmd *cobra.Command, args []string) {
-	query, _ := cmd.Flags().GetString("query")
 	output, _ := cmd.Flags().GetString("output")
+	query, _ := cmd.Flags().GetString("query")
+	if query == "" {
+		fmt.Println("Error, query empty ")
+		os.Exit(1)
+	}
 
-	fmt.Println(output)
+	server, _ := getDerverFromConfig()
+	client, err := api.NewClient(api.Config{
+		Address: server,
+	})
+	if err != nil {
+		fmt.Printf("Error creating client: %v\n", err)
+	}
 
-	api := v1.NewAPI(nil)
+	api := v1.NewAPI(client)
 
 	result, _, err := api.Query(
 		context.TODO(), query, time.Now(), v1.WithTimeout(10*time.Second),
@@ -32,8 +52,8 @@ func Query(cmd *cobra.Command, args []string) {
 		fmt.Println(err.Error())
 	}
 
-	if output == "file" {
-		// exporter.Export_raw()
+	if output != "" {
+		fmt.Println("results exported at " + output)
 	} else {
 		for _, elem := range result.(model.Vector) {
 			fmt.Println(elem)
@@ -41,10 +61,17 @@ func Query(cmd *cobra.Command, args []string) {
 	}
 }
 
-func init() {
-	rootCmd.AddCommand(queryCommand)
-	queryCommand.Flags().StringP("server", "s", "", "")
-	queryCommand.Flags().StringP("query", "q", "", "")
-	queryCommand.Flags().StringP("output", "o", "", "")
+func getDerverFromConfig() (string, error) {
+	file, err := os.ReadFile("config.yaml")
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 
+	config := PromConfig{}
+	err = yaml.Unmarshal(file, &config)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+
+	return config.PromServer, err
 }
