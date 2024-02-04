@@ -1,5 +1,6 @@
 # promctl
-A simple client written in Go and Cobra for querying Prometheus
+A simple client written in Go and Cobra for querying Prometheus.
+The goal of this project was to practice my Go skills and get familiar woth cobra.
 
 Before you begin, make sure you have GOPTH/bin added to your PATH
 Next compile and install
