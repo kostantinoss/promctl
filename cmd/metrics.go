@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"promctl/exporter"
 	"time"
 
 	"github.com/prometheus/client_golang/api"
@@ -21,9 +22,9 @@ var metricsCmd = &cobra.Command{
 	Short: "Prints the available metrics for the configured Prometheus db",
 
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("hi")
+		output_file, _ := cmd.Flags().GetString("output")
+
 		server, _ := getDerverFromConfig()
-		fmt.Println("hi2")
 		client, err := api.NewClient(api.Config{
 			Address: server,
 		})
@@ -42,8 +43,13 @@ var metricsCmd = &cobra.Command{
 		}
 
 		if result != nil && result.Type() == model.ValVector {
-			for _, elem := range result.(model.Vector) {
-				fmt.Println(elem)
+			if output_file == "stdout" {
+				for _, elem := range result.(model.Vector) {
+					fmt.Println(elem)
+				}
+			} else {
+				exporter.Export_raw(result, output_file)
+				fmt.Println("Metrics exported to ", output_file)
 			}
 		}
 	},
@@ -51,4 +57,5 @@ var metricsCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(metricsCmd)
+	metricsCmd.Flags().StringP("output", "o", "stdout", "Export metrics output to file")
 }

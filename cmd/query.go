@@ -24,7 +24,7 @@ var queryCommand = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(queryCommand)
 	queryCommand.Flags().StringP("query", "q", "", "Provide query string")
-	queryCommand.Flags().StringP("output", "o", "", "Write query result to file")
+	queryCommand.Flags().StringP("output", "o", "stdout", "Write query result to file")
 
 }
 
@@ -53,9 +53,11 @@ func Query(cmd *cobra.Command, args []string) {
 		fmt.Println(err.Error())
 	}
 
-	if output_file != "" {
-		exporter.Export_raw(result, output_file)
-		fmt.Println("results exported at " + output_file)
+	if output_file != "stdout" {
+		if isFilepath := checkFilename(output_file); isFilepath {
+			exporter.Export_raw(result, output_file)
+			fmt.Println("results exported at " + output_file)
+		}
 	} else {
 		for _, elem := range result.(model.Vector) {
 			fmt.Println(elem)
@@ -76,4 +78,9 @@ func getDerverFromConfig() (string, error) {
 	}
 
 	return config.PromServer, err
+}
+
+func checkFilename(filename string) bool {
+	// TODO: implement
+	return true
 }
